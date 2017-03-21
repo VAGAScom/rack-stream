@@ -62,10 +62,9 @@ module Rack
         # @raise StreamBlockNotDefined if `.stream` isn't called before
         #   the first request.
         def call(env)
+          return super unless self.class.respond_to?(:_rack_stream_proc)
+
           @env = env
-          unless self.class._rack_stream_proc
-            raise StreamBlockNotDefined.new
-          end
           instance_eval &self.class._rack_stream_proc
         end
       end
@@ -77,12 +76,6 @@ module Rack
         # Declare your rack endpoint with `&blk`
         def stream(&blk)
           @_rack_stream_proc = blk
-        end
-      end
-
-      class StreamBlockNotDefined < StandardError
-        def initialize(message = nil)
-          super("no stream block declared")
         end
       end
     end
